@@ -23,9 +23,7 @@ public class MandelDriver extends JFrame{
 	public  int zoom = 300;
 	public  JLabel L;
 	public  JFrame f;
-	public static void main(String[] args) {
-		new MandelDriver();
-	}
+
 	public  JLabel zoomLabel = new JLabel("Zoom:");
 	public  JSlider zoomSlider = new JSlider(JSlider.HORIZONTAL,0,1000,100);
 	public  JLabel iterationLabel = new JLabel("Iterations:");
@@ -35,6 +33,12 @@ public class MandelDriver extends JFrame{
 	public  JTextField screenW = new JTextField(width+"",4);	
 	public  JLabel screenHLabel = new JLabel("H:");
 	public  JTextField screenH = new JTextField(height+"",4);	
+	
+	
+	
+	public static void main(String[] args) {
+		new MandelDriver();
+	}
 	
 	//Create frame and listen for clicks
 	public MandelDriver() {
@@ -89,9 +93,7 @@ public class MandelDriver extends JFrame{
 					imageOffsetX = imageOffsetX + Math.abs(width/2 - e.getX());
 					imageOffsetY = imageOffsetY -   Math.abs(height/2 - e.getY());
 				}
-				//	imageOffsetX =  (imageOffsetX + x) /2;
-				//	imageOffsetY = (imageOffsetY + y)/2;
-				//zoom = zoom + 100;
+				
 				}else if(SwingUtilities.isMiddleMouseButton(e))
 				{
 					System.out.println("middle click");
@@ -118,40 +120,24 @@ public class MandelDriver extends JFrame{
 	
 	//returns mandelbrot set image
 	public  BufferedImage CreateImage() {
-		//System.out.println("making image");
 		BufferedImage img = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
-		int temp=0;
 		maxIncrement = Integer.parseInt(iterationField.getText());
 		incrementWhite = 5; //was 4
-	//	if(maxIncrement > 100)incrementWhite = 3;else if(maxIncrement > 200)incrementWhite = 1;
 		
 		if(incrementWhite < 1) {incrementWhite = 1;}
-		//Loop to create the actual set
-	//	threaded t = new threaded();
-		for(int y =0; y< height;y++) {
-			for(int x=0;x < width; x++) {
-				temp = IsStable((double)(x-(imageOffsetX+100)) /zoom,(double)(y-imageOffsetY/2)/zoom,maxIncrement) ;
-				temp *= incrementWhite;
 		
-				if(temp >  255) {
-					temp = 255;
-				}
-					
-		 	/*	if(temp < (Integer.parseInt(iterationField.getText()))){
-				v = 255;
-				}else {
-					v=0;
-				}
-				
-				rgb = Color.HSBtoRGB(255 * temp / Integer.parseInt(iterationField.getText()), 255, v);
-				r = (rgb >> 16) & 0xFF;
-				g = (rgb >> 8) & 0xFF;
-				b = (rgb & 0xFF);
-			*/
-				img.setRGB(x,y,new Color(temp,temp,temp).getRGB());
-				
-			}
-		}
+		
+		//Thread to create the actual set
+		 
+		Thread t1 = new Thread( new splittingThread(0,0,width/2,height/2,img));
+		t1.start();
+		Thread t2 = new Thread( new splittingThread(width/2,0,width,height/2,img));
+		t2.start();
+		Thread t3 = new Thread( new splittingThread(0,height/2,width/2,height,img));
+		t3.start();
+		Thread t4 = new Thread( new splittingThread(width/2,height/2,width,height,img));
+		t4.start();
+		
 		return img;
 	}
 	
@@ -166,10 +152,34 @@ public class MandelDriver extends JFrame{
 			x = xz + constantx;
 			y=yz+constanty;
 			if(Math.abs(y) > 2 || Math.abs(x) > 2)return iterations - i;
-			//if(Math.abs(y) > 2 || Math.abs(x) > 2 ) {return (int)((double)(iterations -i)*(255/(double)iterations));}
 		}	
 		if(	Math.abs(y) > 1 || Math.abs(x) > 1 )
 			return 1;
 		return 0;
 	}	
+	
+	public class splittingThread implements Runnable{
+		public void run() {
+			
+		}
+		public splittingThread(int x1, int y1, int x2, int y2, BufferedImage img) {
+			int temp =0;
+			for(int y =y1; y< y2;y++) {
+				for(int x=x1;x < x2; x++) {
+					temp = IsStable((double)(x-(imageOffsetX+100)) /zoom,(double)(y-imageOffsetY/2)/zoom,maxIncrement) ;
+					temp *= incrementWhite;
+			
+					if(temp >  255) {
+						temp = 255;
+					}
+
+					img.setRGB(x,y,new Color(temp,temp,temp).getRGB());
+					
+				}
+			}
+		}
+	}
+	
+	
+	
 }
