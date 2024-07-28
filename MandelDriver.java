@@ -2,6 +2,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -10,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.JButton;
 
 import java.awt.event.*;
 
@@ -33,7 +39,9 @@ public class MandelDriver extends JFrame{
 	public  JTextField screenW = new JTextField(width+"",4);	
 	public  JLabel screenHLabel = new JLabel("H:");
 	public  JTextField screenH = new JTextField(height+"",4);	
+	public	JButton screenBsave=  new JButton("save");
 	
+	public BufferedImage currentImage;
 	
 	
 	public static void main(String[] args) {
@@ -55,7 +63,18 @@ public class MandelDriver extends JFrame{
 		controls.add(screenHLabel);
 		controls.add(screenH);
 		
-		
+		controls.add(screenBsave);
+		screenBsave.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	File outputfile = new File(System.currentTimeMillis() + ".png");
+	        	try {
+					ImageIO.write(currentImage, "png", outputfile);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+	        }
+	      });
+	    
 		setLayout(new BorderLayout());
 		add(controls, BorderLayout.NORTH);
 		controls.setPreferredSize(new Dimension(width,50));
@@ -138,6 +157,8 @@ public class MandelDriver extends JFrame{
 		Thread t4 = new Thread( new splittingThread(width/2,height/2,width,height,img));
 		t4.start();
 		
+		
+		currentImage = img;
 		return img;
 	}
 	
@@ -178,8 +199,5 @@ public class MandelDriver extends JFrame{
 				}
 			}
 		}
-	}
-	
-	
-	
+	}	
 }
